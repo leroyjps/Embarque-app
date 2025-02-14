@@ -3,6 +3,8 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { NavigationContainer } from "@react-navigation/native";
 import MenuScreen from "../screens/MenuScreen"; // Verifique o caminho dos arquivos
 import CriarCanhotosScreen from "../screens/CriarCanhotosScreen"; // Verifique o caminho dos arquivos
+import DetalhesCanhotoScreen from "../screens/DetalhesCanhotoScreen"; // Certifique-se de importar corretamente
+
 import HistoricoCanhotosScreen from "../screens/HistoricoCanhotosScreen"; // Verifique o caminho dos arquivos
 import FotosScreen from "../screens/FotosScreen"; // Verifique o caminho dos arquivos
 import { Ionicons } from "@expo/vector-icons";
