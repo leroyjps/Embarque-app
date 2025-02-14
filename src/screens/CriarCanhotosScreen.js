@@ -8,10 +8,12 @@ import {
   Image,
   ScrollView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { db } from "../config/firebaseConfig"; // Importe o Firebase configurado
-import { collection, addDoc } from "firebase/firestore"; // Funções para Firestore
+import { db } from "../config/firebaseConfig";
+import { collection, addDoc } from "firebase/firestore";
 
 export default function CriarCanhotosScreen() {
   const [notaFiscal, setNotaFiscal] = useState("");
@@ -22,7 +24,6 @@ export default function CriarCanhotosScreen() {
   const [placaVeiculo, setPlacaVeiculo] = useState("");
   const [fotos, setFotos] = useState([]);
 
-  // Função para escolher imagem da galeria
   const escolherFotos = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
@@ -41,7 +42,6 @@ export default function CriarCanhotosScreen() {
     }
   };
 
-  // Função para tirar foto com a câmera
   const abrirCamera = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== "granted") {
@@ -59,13 +59,10 @@ export default function CriarCanhotosScreen() {
     }
   };
 
-  // Função para remover foto
   const removerFoto = (index) => {
-    const newFotos = fotos.filter((_, i) => i !== index);
-    setFotos(newFotos);
+    setFotos(fotos.filter((_, i) => i !== index));
   };
 
-  // Função para adicionar canhoto no Firestore
   const adicionarCanhoto = async () => {
     if (
       !notaFiscal ||
@@ -80,7 +77,6 @@ export default function CriarCanhotosScreen() {
     }
 
     try {
-      // Dados do canhoto
       const canhotoData = {
         notaFiscal,
         cliente,
@@ -89,14 +85,10 @@ export default function CriarCanhotosScreen() {
         nomeOperador,
         placaVeiculo,
         fotos,
-        dataCriacao: new Date().toISOString(), // Data de criação
+        dataCriacao: new Date().toISOString(),
       };
 
-      // Adicionando dados ao Firestore
-      const docRef = await addDoc(collection(db, "canhotos"), canhotoData);
-      console.log("Canhoto adicionado com ID: ", docRef.id);
-
-      // Limpar campos após salvar
+      await addDoc(collection(db, "canhotos"), canhotoData);
       setNotaFiscal("");
       setCliente("");
       setTransportadora("");
@@ -107,86 +99,96 @@ export default function CriarCanhotosScreen() {
 
       Alert.alert("Sucesso", "Canhoto criado com sucesso!");
     } catch (error) {
-      console.error("Erro ao adicionar canhoto: ", error);
       Alert.alert("Erro", "Ocorreu um erro ao salvar o canhoto.");
     }
   };
 
-  // Função de envio do formulário
-  const enviarFormulario = () => {
-    adicionarCanhoto(); // Chama a função para salvar no Firestore
-  };
-
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Criar Canhoto</Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <ScrollView
+        style={styles.scrollContainer}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.title}>Criar Canhoto</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Nota Fiscal"
-        value={notaFiscal}
-        onChangeText={setNotaFiscal}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Cliente"
-        value={cliente}
-        onChangeText={setCliente}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Transportadora"
-        value={transportadora}
-        onChangeText={setTransportadora}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Volumes"
-        value={volumes}
-        onChangeText={setVolumes}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Nome do Operador"
-        value={nomeOperador}
-        onChangeText={setNomeOperador}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Placa do Veículo"
-        value={placaVeiculo}
-        onChangeText={setPlacaVeiculo}
-      />
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Nota Fiscal"
+            placeholderTextColor="#666"
+            value={notaFiscal}
+            onChangeText={setNotaFiscal}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Cliente"
+            placeholderTextColor="#666"
+            value={cliente}
+            onChangeText={setCliente}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Transportadora"
+            placeholderTextColor="#666"
+            value={transportadora}
+            onChangeText={setTransportadora}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Volumes"
+            placeholderTextColor="#666"
+            value={volumes}
+            onChangeText={setVolumes}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Nome do Operador"
+            placeholderTextColor="#666"
+            value={nomeOperador}
+            onChangeText={setNomeOperador}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Placa do Veículo"
+            placeholderTextColor="#666"
+            value={placaVeiculo}
+            onChangeText={setPlacaVeiculo}
+          />
+        </View>
 
-      {/* Exibir fotos anexadas */}
-      <View style={styles.fotosContainer}>
-        {fotos.map((foto, index) => (
-          <View key={index} style={styles.fotoContainer}>
-            <Image source={{ uri: foto }} style={styles.foto} />
-            <TouchableOpacity
-              style={styles.removeFotoButton}
-              onPress={() => removerFoto(index)}
-            >
-              <Text style={styles.removeFotoButtonText}>X</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </View>
+        <View style={styles.fotosContainer}>
+          {fotos.map((foto, index) => (
+            <View key={index} style={styles.fotoContainer}>
+              <Image source={{ uri: foto }} style={styles.foto} />
+              <TouchableOpacity
+                style={styles.removeFotoButton}
+                onPress={() => removerFoto(index)}
+              >
+                <Text style={styles.removeFotoButtonText}>X</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
 
-      {/* Botões de anexar foto */}
-      <TouchableOpacity style={styles.button} onPress={escolherFotos}>
-        <Text style={styles.buttonText}>Escolher da Galeria</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={escolherFotos}>
+          <Text style={styles.buttonText}>Escolher da Galeria</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={abrirCamera}>
-        <Text style={styles.buttonText}>Tirar Foto</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={abrirCamera}>
+          <Text style={styles.buttonText}>Tirar Foto</Text>
+        </TouchableOpacity>
 
-      {/* Botão de envio */}
-      <TouchableOpacity style={styles.buttonSubmit} onPress={enviarFormulario}>
-        <Text style={styles.buttonSubmitText}>Salvar Canhoto</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <TouchableOpacity
+          style={styles.buttonSubmit}
+          onPress={adicionarCanhoto}
+        >
+          <Text style={styles.buttonSubmitText}>Salvar Canhoto</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -194,52 +196,59 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9f9f9",
-    padding: 20,
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 30,
   },
   title: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginVertical: 20,
     textAlign: "center",
     color: "#007bff",
   },
+  inputContainer: {
+    width: "100%",
+  },
   input: {
     height: 50,
-    borderColor: "#ddd",
+    borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 10,
-    marginBottom: 20,
-    paddingLeft: 10,
+    marginBottom: 15,
+    paddingHorizontal: 10,
     fontSize: 16,
+    backgroundColor: "#fff",
+    color: "#333",
   },
   button: {
     backgroundColor: "#007bff",
     padding: 15,
-    borderRadius: 40,
-    marginBottom: 20,
+    borderRadius: 8,
+    marginBottom: 10,
     alignItems: "center",
   },
   buttonText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
   },
   buttonSubmit: {
     backgroundColor: "#28a745",
     padding: 15,
-    borderRadius: 40,
-    marginBottom: 20,
+    borderRadius: 8,
     alignItems: "center",
   },
   buttonSubmitText: {
     color: "#fff",
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
   },
   fotosContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginBottom: 20,
+    marginBottom: 15,
   },
   fotoContainer: {
     position: "relative",
@@ -253,9 +262,9 @@ const styles = StyleSheet.create({
   },
   removeFotoButton: {
     position: "absolute",
-    top: 0,
-    right: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    top: 5,
+    right: 5,
+    backgroundColor: "rgba(0,0,0,0.5)",
     padding: 5,
     borderRadius: 10,
   },
