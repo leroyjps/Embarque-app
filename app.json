@@ -2,7 +2,11 @@
   "expo": {
     "name": "Embarque-app",
     "slug": "embarque-app",
-    "platforms": ["android", "ios", "web"],
+    "platforms": [
+      "android",
+      "ios",
+      "web"
+    ],
     "android": {
       "package": "com.seunome.embarqueapp",
       "permissions": [
@@ -22,9 +26,16 @@
     "updates": {
       "fallbackToCacheTimeout": 0
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "bundleIdentifier": "com.seunome.embarqueapp"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "6b9bb697-ba75-4ee5-b3fc-f222c9225af3"
+      }
     }
   }
 }
