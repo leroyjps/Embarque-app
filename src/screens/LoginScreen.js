@@ -6,27 +6,58 @@ import {
   View,
   TextInput,
   TouchableOpacity,
-  Image,
   SafeAreaView,
+  Alert,
 } from "react-native";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, db } from "../config/firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function LoginScreen({ navigation }) {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Erro", "Preencha todos os campos!");
+      return;
+    }
+
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
+
+      // Verifica o tipo de usuário no Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const userRole = userDoc.data().role;
+        if (userRole === "admin") {
+          navigation.replace("AdminTabs");
+        } else {
+          navigation.replace("UserTabs");
+        }
+      } else {
+        Alert.alert("Erro", "Usuário não encontrado no banco de dados.");
+      }
+    } catch (error) {
+      console.error("Erro ao fazer login:", error);
+      Alert.alert("Erro", "E-mail ou senha incorretos.");
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.loginBox}>
-        <Image
-          style={styles.profileImage}
-          source={{ uri: `https://github.com/leroyjps.png` }}
-        />
         <Text style={styles.title}>Login</Text>
         <TextInput
           style={styles.input}
-          placeholder="Usuário ou e-mail"
-          value={username}
-          onChangeText={setUsername}
+          placeholder="E-mail"
+          value={email}
+          onChangeText={setEmail}
         />
         <TextInput
           style={styles.input}
@@ -35,83 +66,10 @@ export default function LoginScreen({ navigation }) {
           value={password}
           onChangeText={setPassword}
         />
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => navigation.navigate("Menu")}
-        >
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Entrar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
-          <Text style={styles.linkText}>Criar uma conta</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  loginBox: {
-    width: "100%",
-    maxWidth: 400,
-    backgroundColor: "#f8f9fa",
-    padding: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-  },
-  profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 20,
-    borderWidth: 2,
-    borderColor: "#000",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    color: "#000",
-  },
-  input: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    paddingHorizontal: 15,
-    fontSize: 16,
-    borderColor: "#000",
-    borderWidth: 1,
-    marginBottom: 15,
-    color: "#000",
-  },
-  button: {
-    width: "100%",
-    height: 50,
-    backgroundColor: "#007bff",
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 10,
-  },
-  buttonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  linkText: {
-    color: "#007bff",
-    marginTop: 10,
-    fontSize: 16,
-    textDecorationLine: "underline",
-  },
-});
